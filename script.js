@@ -1,134 +1,103 @@
 /* =====================================================
    SACHIN MOBILE WEBSITE
-   DATABASE-FREE PRODUCT MANAGEMENT
-   Uses Browser LocalStorage
+   ONLINE DATABASE PRODUCT MANAGEMENT
+   Uses Supabase
 ===================================================== */
 
 
 /* =====================================================
-   DEFAULT PRODUCTS
+   SUPABASE CONFIGURATION
 ===================================================== */
 
-const defaultProducts = [
+const SUPABASE_URL =
+    "https://bqzgwvmleguvbkicyzji.supabase.co";
 
-    {
-        id: 1,
-
-        name: "iPhone 12",
-
-        price: 28999,
-
-        condition: "Excellent",
-
-        status: "available",
-
-        image:
-        "https://images.unsplash.com/photo-1592286927505-2fd6f2f9f7f0?auto=format&fit=crop&w=600&q=80",
-
-        details:
-        "128GB | Clean Condition"
-    },
-
-
-    {
-        id: 2,
-
-        name: "Samsung Galaxy S21",
-
-        price: 21999,
-
-        condition: "Good",
-
-        status: "available",
-
-        image:
-        "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=600&q=80",
-
-        details:
-        "128GB | 8GB RAM"
-    },
-
-
-    {
-        id: 3,
-
-        name: "OnePlus 9",
-
-        price: 17999,
-
-        condition: "Good",
-
-        status: "available",
-
-        image:
-        "https://images.unsplash.com/photo-1632633173522-3c8d0d7d8f96?auto=format&fit=crop&w=600&q=80",
-
-        details:
-        "128GB | 8GB RAM"
-    }
-
-];
+const SUPABASE_ANON_KEY =
+    "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
 
 
 /* =====================================================
-   GET PRODUCTS
+   SUPABASE CLIENT
 ===================================================== */
 
-function getProducts() {
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
 
-    const products =
-        localStorage.getItem("sachinProducts");
 
-    if(products) {
+/* =====================================================
+   GET PRODUCTS FROM ONLINE DATABASE
+===================================================== */
 
-        return JSON.parse(products);
+async function getProducts() {
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("products")
+        .select("*")
+        .order("created_at", {
+            ascending: false
+        });
+
+
+    if(error) {
+
+        console.error(
+            "Error loading products:",
+            error
+        );
+
+        return [];
 
     }
 
-    localStorage.setItem(
-        "sachinProducts",
-        JSON.stringify(defaultProducts)
-    );
 
-    return defaultProducts;
-}
-
-
-/* =====================================================
-   SAVE PRODUCTS
-===================================================== */
-
-function saveProducts(products) {
-
-    localStorage.setItem(
-        "sachinProducts",
-        JSON.stringify(products)
-    );
+    return data || [];
 
 }
 
 
 /* =====================================================
-   SHOW PRODUCTS ON HOME PAGE
+   DISPLAY PRODUCTS ON HOME PAGE
 ===================================================== */
 
-function displayProducts(search = "") {
+async function displayProducts(search = "") {
 
     const container =
-        document.getElementById("mobileProducts");
+        document.getElementById(
+            "mobileProducts"
+        );
+
 
     if(!container) return;
 
 
-    const products = getProducts();
+    container.innerHTML = `
+        <div class="no-products">
+            <h2>Loading...</h2>
+            <p>Please wait...</p>
+        </div>
+    `;
+
+
+    const products =
+        await getProducts();
 
 
     const filtered =
         products.filter(product => {
 
-            return product.name
+            return (
+                product.name || ""
+            )
             .toLowerCase()
-            .includes(search.toLowerCase());
+            .includes(
+                search.toLowerCase()
+            );
 
         });
 
@@ -145,7 +114,7 @@ function displayProducts(search = "") {
                 <h2>No Mobile Found</h2>
 
                 <p>
-                    This mobile is currently not available.
+                    No products are currently available.
                 </p>
 
             </div>
@@ -160,9 +129,11 @@ function displayProducts(search = "") {
     filtered.forEach(product => {
 
         const card =
-        document.createElement("div");
+            document.createElement("div");
 
-        card.className = "product-card";
+
+        card.className =
+            "product-card";
 
 
         const statusClass =
@@ -182,8 +153,8 @@ function displayProducts(search = "") {
             <div class="product-image">
 
                 <img
-                    src="${product.image}"
-                    alt="${product.name}"
+                    src="${product.image || ""}"
+                    alt="${product.name || "Mobile"}"
                     onerror="this.src='https://via.placeholder.com/600x600?text=No+Image'"
                 >
 
@@ -197,24 +168,34 @@ function displayProducts(search = "") {
             <div class="product-info">
 
                 <h3>
-                    ${product.name}
+                    ${product.name || ""}
                 </h3>
 
+
                 <p class="details">
-                    ${product.details}
+                    ${product.details || ""}
                 </p>
 
+
                 <p class="condition">
+
                     Condition:
-                    <b>${product.condition}</b>
+
+                    <b>
+                        ${product.condition || ""}
+                    </b>
+
                 </p>
 
 
                 <div class="product-bottom">
 
                     <strong>
-                        ₹${Number(product.price).toLocaleString("en-IN")}
+                        ₹${Number(
+                            product.price || 0
+                        ).toLocaleString("en-IN")}
                     </strong>
+
 
                     ${
                         product.status === "available"
@@ -222,19 +203,22 @@ function displayProducts(search = "") {
                         ?
 
                         `
+
                         <a
-                            href="https://wa.me/917719042356?text=I%20am%20interested%20in%20${encodeURIComponent(product.name)}"
+                            href="https://wa.me/917719042356?text=I%20am%20interested%20in%20${encodeURIComponent(product.name || "")}"
                             target="_blank"
                             class="interest-btn">
 
                             Enquire
 
                         </a>
+
                         `
 
                         :
 
                         `
+
                         <button
                             class="sold-btn"
                             disabled>
@@ -242,6 +226,7 @@ function displayProducts(search = "") {
                             Sold Out
 
                         </button>
+
                         `
                     }
 
@@ -264,7 +249,9 @@ function displayProducts(search = "") {
 ===================================================== */
 
 const searchInput =
-    document.getElementById("searchInput");
+    document.getElementById(
+        "searchInput"
+    );
 
 
 if(searchInput) {
@@ -284,32 +271,70 @@ if(searchInput) {
 
 
 /* =====================================================
-   DISPLAY PRODUCTS
-===================================================== */
-
-displayProducts();
-
-
-/* =====================================================
    OWNER LOGIN CHECK
 ===================================================== */
 
-if(
-    window.location.pathname.includes("owner.html")
-) {
+async function checkOwnerAccess() {
 
-    const loggedIn =
-        localStorage.getItem(
-            "ownerLoggedIn"
-        );
+    if(
+        !window.location.pathname.includes(
+            "owner.html"
+        )
+    ) {
+
+        return true;
+
+    }
 
 
-    if(loggedIn !== "true") {
+    const {
+        data: {
+            user
+        }
+    } =
+        await supabaseClient.auth.getUser();
+
+
+    if(!user) {
 
         window.location.href =
             "login.html";
 
+        return false;
+
     }
+
+
+    const {
+        data: owner,
+        error
+    } =
+        await supabaseClient
+            .from("owner_profiles")
+            .select("user_id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+
+    if(error || !owner) {
+
+        alert(
+            "You are not authorized as owner."
+        );
+
+
+        await supabaseClient.auth.signOut();
+
+
+        window.location.href =
+            "login.html";
+
+        return false;
+
+    }
+
+
+    return true;
 
 }
 
@@ -318,7 +343,7 @@ if(
    OWNER PRODUCT LIST
 ===================================================== */
 
-function displayAdminProducts() {
+async function displayAdminProducts() {
 
     const container =
         document.getElementById(
@@ -329,8 +354,19 @@ function displayAdminProducts() {
     if(!container) return;
 
 
+    container.innerHTML = `
+
+        <div class="empty-admin">
+
+            Loading products...
+
+        </div>
+
+    `;
+
+
     const products =
-        getProducts();
+        await getProducts();
 
 
     container.innerHTML = "";
@@ -339,9 +375,13 @@ function displayAdminProducts() {
     if(products.length === 0) {
 
         container.innerHTML = `
+
             <div class="empty-admin">
+
                 No products available.
+
             </div>
+
         `;
 
         return;
@@ -362,7 +402,7 @@ function displayAdminProducts() {
         item.innerHTML = `
 
             <img
-                src="${product.image}"
+                src="${product.image || ""}"
                 onerror="this.src='https://via.placeholder.com/150?text=No+Image'"
             >
 
@@ -370,19 +410,24 @@ function displayAdminProducts() {
             <div class="admin-product-info">
 
                 <h3>
-                    ${product.name}
+                    ${product.name || ""}
                 </h3>
 
+
                 <p>
-                    ₹${Number(product.price).toLocaleString("en-IN")}
+                    ₹${Number(
+                        product.price || 0
+                    ).toLocaleString("en-IN")}
                 </p>
 
+
                 <span>
-                    ${product.condition}
+                    ${product.condition || ""}
                 </span>
 
+
                 <b class="${product.status}">
-                    ${product.status}
+                    ${product.status || ""}
                 </b>
 
             </div>
@@ -391,7 +436,7 @@ function displayAdminProducts() {
             <div class="admin-actions">
 
                 <button
-                    onclick="editProduct(${product.id})"
+                    onclick="editProduct('${product.id}')"
                     class="edit-btn">
 
                     Edit
@@ -400,7 +445,7 @@ function displayAdminProducts() {
 
 
                 <button
-                    onclick="deleteProduct(${product.id})"
+                    onclick="deleteProduct('${product.id}')"
                     class="delete-btn">
 
                     Delete
@@ -409,7 +454,7 @@ function displayAdminProducts() {
 
 
                 <button
-                    onclick="toggleStatus(${product.id})"
+                    onclick="toggleStatus('${product.id}')"
                     class="status-btn">
 
                     ${
@@ -446,7 +491,7 @@ if(productForm) {
 
     productForm.addEventListener(
         "submit",
-        function(e) {
+        async function(e) {
 
             e.preventDefault();
 
@@ -459,15 +504,11 @@ if(productForm) {
 
             const product = {
 
-                id:
-                    editId
-                    ? Number(editId)
-                    : Date.now(),
-
                 name:
                     document.getElementById(
                         "productName"
-                    ).value,
+                    ).value.trim(),
+
 
                 price:
                     Number(
@@ -476,47 +517,62 @@ if(productForm) {
                         ).value
                     ),
 
+
                 condition:
                     document.getElementById(
                         "productCondition"
                     ).value,
+
 
                 status:
                     document.getElementById(
                         "productStatus"
                     ).value,
 
+
                 image:
                     document.getElementById(
                         "productImage"
-                    ).value
+                    ).value.trim()
                     ||
                     "https://via.placeholder.com/600x600?text=Mobile",
+
 
                 details:
                     document.getElementById(
                         "productDetails"
-                    ).value
+                    ).value.trim()
 
             };
 
 
-            let products =
-                getProducts();
-
-
-            /* EDIT */
+            /* =================================================
+               EDIT EXISTING PRODUCT
+            ================================================= */
 
             if(editId) {
 
-                products =
-                    products.map(p => {
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from("products")
+                        .update(product)
+                        .eq("id", editId);
 
-                        return p.id === Number(editId)
-                            ? product
-                            : p;
 
-                    });
+                if(error) {
+
+                    console.error(error);
+
+                    alert(
+                        "Error updating product: " +
+                        error.message
+                    );
+
+                    return;
+
+                }
 
 
                 alert(
@@ -526,13 +582,33 @@ if(productForm) {
             }
 
 
-            /* ADD */
+            /* =================================================
+               ADD NEW PRODUCT
+            ================================================= */
 
             else {
 
-                products.unshift(
-                    product
-                );
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from("products")
+                        .insert([product]);
+
+
+                if(error) {
+
+                    console.error(error);
+
+                    alert(
+                        "Error adding product: " +
+                        error.message
+                    );
+
+                    return;
+
+                }
+
 
                 alert(
                     "Product added successfully!"
@@ -541,14 +617,12 @@ if(productForm) {
             }
 
 
-            saveProducts(products);
-
-
             resetForm();
 
-            displayAdminProducts();
 
-            displayProducts();
+            await displayAdminProducts();
+
+            await displayProducts();
 
         }
     );
@@ -560,54 +634,69 @@ if(productForm) {
    EDIT PRODUCT
 ===================================================== */
 
-function editProduct(id) {
+async function editProduct(id) {
 
     const products =
-        getProducts();
+        await getProducts();
 
 
     const product =
         products.find(
-            p => p.id === id
+            p => String(p.id) === String(id)
         );
 
 
-    if(!product) return;
+    if(!product) {
+
+        alert(
+            "Product not found."
+        );
+
+        return;
+
+    }
 
 
     document.getElementById(
         "editId"
-    ).value = product.id;
+    ).value =
+        product.id;
 
 
     document.getElementById(
         "productName"
-    ).value = product.name;
+    ).value =
+        product.name || "";
 
 
     document.getElementById(
         "productPrice"
-    ).value = product.price;
+    ).value =
+        product.price || "";
 
 
     document.getElementById(
         "productCondition"
-    ).value = product.condition;
+    ).value =
+        product.condition || "";
 
 
     document.getElementById(
         "productStatus"
-    ).value = product.status;
+    ).value =
+        product.status || "available";
 
 
     document.getElementById(
         "productImage"
-    ).value = product.image;
+    ).value =
+        product.image || "";
 
 
     document.getElementById(
         "productDetails"
-    ).value = product.details;
+    ).value =
+        product.details || "";
 
 
     document.getElementById(
@@ -623,8 +712,11 @@ function editProduct(id) {
 
 
     window.scrollTo({
+
         top: 0,
+
         behavior: "smooth"
+
     });
 
 }
@@ -634,7 +726,7 @@ function editProduct(id) {
    DELETE PRODUCT
 ===================================================== */
 
-function deleteProduct(id) {
+async function deleteProduct(id) {
 
     const confirmDelete =
         confirm(
@@ -645,22 +737,32 @@ function deleteProduct(id) {
     if(!confirmDelete) return;
 
 
-    let products =
-        getProducts();
+    const {
+        error
+    } =
+        await supabaseClient
+            .from("products")
+            .delete()
+            .eq("id", id);
 
 
-    products =
-        products.filter(
-            p => p.id !== id
+    if(error) {
+
+        console.error(error);
+
+        alert(
+            "Error deleting product: " +
+            error.message
         );
 
+        return;
 
-    saveProducts(products);
+    }
 
 
-    displayAdminProducts();
+    await displayAdminProducts();
 
-    displayProducts();
+    await displayProducts();
 
 
     alert(
@@ -674,35 +776,55 @@ function deleteProduct(id) {
    AVAILABLE / SOLD
 ===================================================== */
 
-function toggleStatus(id) {
+async function toggleStatus(id) {
 
-    let products =
-        getProducts();
-
-
-    products =
-        products.map(product => {
-
-            if(product.id === id) {
-
-                product.status =
-                    product.status === "available"
-                    ? "sold"
-                    : "available";
-
-            }
-
-            return product;
-
-        });
+    const products =
+        await getProducts();
 
 
-    saveProducts(products);
+    const product =
+        products.find(
+            p => String(p.id) === String(id)
+        );
 
 
-    displayAdminProducts();
+    if(!product) return;
 
-    displayProducts();
+
+    const newStatus =
+        product.status === "available"
+        ? "sold"
+        : "available";
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from("products")
+            .update({
+                status: newStatus
+            })
+            .eq("id", id);
+
+
+    if(error) {
+
+        console.error(error);
+
+        alert(
+            "Error changing status: " +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    await displayAdminProducts();
+
+    await displayProducts();
 
 }
 
@@ -748,11 +870,9 @@ function resetForm() {
    LOGOUT
 ===================================================== */
 
-function logout() {
+async function logout() {
 
-    localStorage.removeItem(
-        "ownerLoggedIn"
-    );
+    await supabaseClient.auth.signOut();
 
 
     window.location.href =
@@ -762,7 +882,37 @@ function logout() {
 
 
 /* =====================================================
-   ADMIN DISPLAY
+   PAGE INITIALIZATION
 ===================================================== */
 
-displayAdminProducts();
+async function initializePage() {
+
+    const ownerAccess =
+        await checkOwnerAccess();
+
+
+    if(
+        window.location.pathname.includes(
+            "owner.html"
+        )
+        &&
+        !ownerAccess
+    ) {
+
+        return;
+
+    }
+
+
+    await displayProducts();
+
+    await displayAdminProducts();
+
+}
+
+
+/* =====================================================
+   START
+===================================================== */
+
+initializePage();
