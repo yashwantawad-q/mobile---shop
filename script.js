@@ -13,7 +13,7 @@ const SUPABASE_URL =
     "https://bqzgwvmleguvbkicyzji.supabase.co";
 
 const SUPABASE_ANON_KEY =
-    "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+    "sb_publishable_AcUWdnxtWLVB1mAKD5cUlg_Q6mRfvlg";
 
 
 /* =====================================================
