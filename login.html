@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Owner Login | Sachin Mobile</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body class="login-page">
+
+
+<div class="login-container">
+
+    <div class="login-logo">
+        <span>SM</span>
+    </div>
+
+    <h1>Owner Login</h1>
+
+    <p>Manage Sachin Mobile Products</p>
+
+
+    <form id="loginForm">
+
+        <label>Username</label>
+
+        <input
+            type="text"
+            id="username"
+            placeholder="Enter username"
+            required>
+
+
+        <label>Password</label>
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Enter password"
+            required>
+
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+
+
+    <a href="index.html" class="back-home">
+        ← Back to Website
+    </a>
+
+</div>
+
+
+<script>
+
+document
+.getElementById("loginForm")
+.addEventListener("submit", function(e) {
+
+    e.preventDefault();
+
+    const username =
+        document.getElementById("username").value;
+
+    const password =
+        document.getElementById("password").value;
+
+
+    /*
+       DEMO LOGIN
+
+       Username: admin
+       Password: 1234
+    */
+
+    if(username === "admin" && password === "1234") {
+
+        localStorage.setItem(
+            "ownerLoggedIn",
+            "true"
+        );
+
+        window.location.href = "owner.html";
+
+    } else {
+
+        alert("Wrong Username or Password!");
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

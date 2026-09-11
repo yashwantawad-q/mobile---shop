@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Owner Dashboard | Sachin Mobile</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body class="owner-page">
+
+
+<!-- DASHBOARD HEADER -->
+
+<header class="dashboard-header">
+
+    <div class="logo">
+
+        <span>SM</span>
+
+        <div>
+            <b>SACHIN</b>
+            <small>MOBILE</small>
+        </div>
+
+    </div>
+
+
+    <div>
+
+        <a
+            href="index.html"
+            class="view-btn">
+            View Website
+        </a>
+
+        <button
+            onclick="logout()"
+            class="logout-btn">
+            Logout
+        </button>
+
+    </div>
+
+</header>
+
+
+<!-- DASHBOARD -->
+
+<main class="dashboard">
+
+    <div class="dashboard-title">
+
+        <p>OWNER PANEL</p>
+
+        <h1>Product Management</h1>
+
+        <span>
+            Add, edit, remove and manage your products.
+        </span>
+
+    </div>
+
+
+    <!-- ADD PRODUCT -->
+
+    <section class="admin-box">
+
+        <h2 id="formTitle">
+            Add New Product
+        </h2>
+
+
+        <form id="productForm">
+
+            <input
+                type="hidden"
+                id="editId">
+
+
+            <div class="form-grid">
+
+                <div>
+
+                    <label>Product Name</label>
+
+                    <input
+                        type="text"
+                        id="productName"
+                        placeholder="e.g. iPhone 12"
+                        required>
+
+                </div>
+
+
+                <div>
+
+                    <label>Price</label>
+
+                    <input
+                        type="number"
+                        id="productPrice"
+                        placeholder="e.g. 25000"
+                        required>
+
+                </div>
+
+
+                <div>
+
+                    <label>Condition</label>
+
+                    <select id="productCondition">
+
+                        <option>Excellent</option>
+                        <option>Good</option>
+                        <option>Average</option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label>Status</label>
+
+                    <select id="productStatus">
+
+                        <option value="available">
+                            Available
+                        </option>
+
+                        <option value="sold">
+                            Sold
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label>Product Image URL</label>
+
+                    <input
+                        type="text"
+                        id="productImage"
+                        placeholder="https://...">
+
+                </div>
+
+
+                <div>
+
+                    <label>Storage / Details</label>
+
+                    <input
+                        type="text"
+                        id="productDetails"
+                        placeholder="128GB | 6GB RAM">
+
+                </div>
+
+            </div>
+
+
+            <div class="form-buttons">
+
+                <button
+                    type="submit"
+                    class="save-btn"
+                    id="saveBtn">
+
+                    Add Product
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="cancel-btn"
+                    onclick="resetForm()">
+
+                    Clear
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- PRODUCTS -->
+
+    <section class="admin-box">
+
+        <h2>All Products</h2>
+
+        <div
+            id="adminProducts"
+            class="admin-products">
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
