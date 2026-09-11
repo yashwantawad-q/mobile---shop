@@ -1,12 +1,11 @@
 /* =====================================================
-   SACHIN MOBILE WEBSITE
-   ONLINE DATABASE PRODUCT MANAGEMENT
-   Uses Supabase
+   SACHIN MOBILE
+   ONLINE DATABASE - SUPABASE
 ===================================================== */
 
 
 /* =====================================================
-   SUPABASE CONFIGURATION
+   SUPABASE CONFIG
 ===================================================== */
 
 const SUPABASE_URL =
@@ -17,21 +16,41 @@ const SUPABASE_ANON_KEY =
 
 
 /* =====================================================
-   SUPABASE CLIENT
+   CREATE SUPABASE CLIENT
 ===================================================== */
 
-const supabaseClient =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
+let supabaseClient = null;
+
+if (window.supabase) {
+
+    supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+
+} else {
+
+    console.error(
+        "Supabase library is not loaded!"
     );
+
+    alert(
+        "Supabase library load झाली नाही. Page refresh करा."
+    );
+
+}
 
 
 /* =====================================================
-   GET PRODUCTS FROM ONLINE DATABASE
+   GET PRODUCTS
 ===================================================== */
 
 async function getProducts() {
+
+    if (!supabaseClient) {
+        return [];
+    }
 
     const {
         data,
@@ -44,10 +63,10 @@ async function getProducts() {
         });
 
 
-    if(error) {
+    if (error) {
 
         console.error(
-            "Error loading products:",
+            "Products loading error:",
             error
         );
 
@@ -62,7 +81,7 @@ async function getProducts() {
 
 
 /* =====================================================
-   DISPLAY PRODUCTS ON HOME PAGE
+   DISPLAY PRODUCTS - HOME
 ===================================================== */
 
 async function displayProducts(search = "") {
@@ -73,7 +92,9 @@ async function displayProducts(search = "") {
         );
 
 
-    if(!container) return;
+    if (!container) {
+        return;
+    }
 
 
     container.innerHTML = `
@@ -88,15 +109,28 @@ async function displayProducts(search = "") {
         await getProducts();
 
 
+    const searchText =
+        search.toLowerCase().trim();
+
+
     const filtered =
         products.filter(product => {
 
+            const name =
+                String(
+                    product.name || ""
+                ).toLowerCase();
+
+
+            const details =
+                String(
+                    product.details || ""
+                ).toLowerCase();
+
+
             return (
-                product.name || ""
-            )
-            .toLowerCase()
-            .includes(
-                search.toLowerCase()
+                name.includes(searchText) ||
+                details.includes(searchText)
             );
 
         });
@@ -105,10 +139,9 @@ async function displayProducts(search = "") {
     container.innerHTML = "";
 
 
-    if(filtered.length === 0) {
+    if (filtered.length === 0) {
 
         container.innerHTML = `
-
             <div class="no-products">
 
                 <h2>No Mobile Found</h2>
@@ -118,7 +151,6 @@ async function displayProducts(search = "") {
                 </p>
 
             </div>
-
         `;
 
         return;
@@ -136,16 +168,8 @@ async function displayProducts(search = "") {
             "product-card";
 
 
-        const statusClass =
-            product.status === "available"
-            ? "available"
-            : "sold";
-
-
-        const statusText =
-            product.status === "available"
-            ? "AVAILABLE"
-            : "SOLD";
+        const isAvailable =
+            product.status === "available";
 
 
         card.innerHTML = `
@@ -158,8 +182,18 @@ async function displayProducts(search = "") {
                     onerror="this.src='https://via.placeholder.com/600x600?text=No+Image'"
                 >
 
-                <span class="status ${statusClass}">
-                    ${statusText}
+                <span class="status ${
+                    isAvailable
+                    ? "available"
+                    : "sold"
+                }">
+
+                    ${
+                        isAvailable
+                        ? "AVAILABLE"
+                        : "SOLD"
+                    }
+
                 </span>
 
             </div>
@@ -168,7 +202,7 @@ async function displayProducts(search = "") {
             <div class="product-info">
 
                 <h3>
-                    ${product.name || ""}
+                    ${product.name || "Mobile"}
                 </h3>
 
 
@@ -198,27 +232,27 @@ async function displayProducts(search = "") {
 
 
                     ${
-                        product.status === "available"
+                        isAvailable
 
                         ?
 
                         `
-
                         <a
-                            href="https://wa.me/917719042356?text=I%20am%20interested%20in%20${encodeURIComponent(product.name || "")}"
+                            href="https://wa.me/917719042356?text=${encodeURIComponent(
+                                "I am interested in " +
+                                (product.name || "")
+                            )}"
                             target="_blank"
                             class="interest-btn">
 
                             Enquire
 
                         </a>
-
                         `
 
                         :
 
                         `
-
                         <button
                             class="sold-btn"
                             disabled>
@@ -226,7 +260,6 @@ async function displayProducts(search = "") {
                             Sold Out
 
                         </button>
-
                         `
                     }
 
@@ -248,17 +281,22 @@ async function displayProducts(search = "") {
    SEARCH
 ===================================================== */
 
-const searchInput =
-    document.getElementById(
-        "searchInput"
-    );
+function setupSearch() {
+
+    const searchInput =
+        document.getElementById(
+            "searchInput"
+        );
 
 
-if(searchInput) {
+    if (!searchInput) {
+        return;
+    }
+
 
     searchInput.addEventListener(
         "input",
-        function() {
+        function () {
 
             displayProducts(
                 this.value
@@ -271,31 +309,25 @@ if(searchInput) {
 
 
 /* =====================================================
-   OWNER LOGIN CHECK
+   CHECK OWNER ACCESS
 ===================================================== */
 
 async function checkOwnerAccess() {
 
-    if(
-        !window.location.pathname.includes(
-            "owner.html"
-        )
-    ) {
+    const isOwnerPage =
+        window.location.pathname
+            .toLowerCase()
+            .includes("owner.html");
+
+
+    if (!isOwnerPage) {
 
         return true;
 
     }
 
 
-    const {
-        data: {
-            user
-        }
-    } =
-        await supabaseClient.auth.getUser();
-
-
-    if(!user) {
+    if (!supabaseClient) {
 
         window.location.href =
             "login.html";
@@ -306,24 +338,67 @@ async function checkOwnerAccess() {
 
 
     const {
-        data: owner,
+        data,
         error
+    } =
+        await supabaseClient.auth.getUser();
+
+
+    if (error || !data || !data.user) {
+
+        window.location.href =
+            "login.html";
+
+        return false;
+
+    }
+
+
+    const user =
+        data.user;
+
+
+    const {
+        data: owner,
+        error: ownerError
     } =
         await supabaseClient
             .from("owner_profiles")
             .select("user_id")
-            .eq("user_id", user.id)
+            .eq(
+                "user_id",
+                user.id
+            )
             .maybeSingle();
 
 
-    if(error || !owner) {
+    if (ownerError) {
+
+        console.error(
+            "Owner check error:",
+            ownerError
+        );
+
+        alert(
+            "Owner verification error: " +
+            ownerError.message
+        );
+
+        return false;
+
+    }
+
+
+    if (!owner) {
 
         alert(
             "You are not authorized as owner."
         );
 
 
-        await supabaseClient.auth.signOut();
+        await supabaseClient
+            .auth
+            .signOut();
 
 
         window.location.href =
@@ -340,7 +415,7 @@ async function checkOwnerAccess() {
 
 
 /* =====================================================
-   OWNER PRODUCT LIST
+   DISPLAY ADMIN PRODUCTS
 ===================================================== */
 
 async function displayAdminProducts() {
@@ -351,17 +426,15 @@ async function displayAdminProducts() {
         );
 
 
-    if(!container) return;
+    if (!container) {
+        return;
+    }
 
 
     container.innerHTML = `
-
         <div class="empty-admin">
-
             Loading products...
-
         </div>
-
     `;
 
 
@@ -372,16 +445,12 @@ async function displayAdminProducts() {
     container.innerHTML = "";
 
 
-    if(products.length === 0) {
+    if (products.length === 0) {
 
         container.innerHTML = `
-
             <div class="empty-admin">
-
                 No products available.
-
             </div>
-
         `;
 
         return;
@@ -399,10 +468,15 @@ async function displayAdminProducts() {
             "admin-product";
 
 
+        const isAvailable =
+            product.status === "available";
+
+
         item.innerHTML = `
 
             <img
                 src="${product.image || ""}"
+                alt="${product.name || "Mobile"}"
                 onerror="this.src='https://via.placeholder.com/150?text=No+Image'"
             >
 
@@ -410,7 +484,7 @@ async function displayAdminProducts() {
             <div class="admin-product-info">
 
                 <h3>
-                    ${product.name || ""}
+                    ${product.name || "Mobile"}
                 </h3>
 
 
@@ -426,8 +500,18 @@ async function displayAdminProducts() {
                 </span>
 
 
-                <b class="${product.status}">
-                    ${product.status || ""}
+                <b class="${
+                    isAvailable
+                    ? "available"
+                    : "sold"
+                }">
+
+                    ${
+                        isAvailable
+                        ? "AVAILABLE"
+                        : "SOLD"
+                    }
+
                 </b>
 
             </div>
@@ -436,8 +520,9 @@ async function displayAdminProducts() {
             <div class="admin-actions">
 
                 <button
-                    onclick="editProduct('${product.id}')"
-                    class="edit-btn">
+                    type="button"
+                    class="edit-btn"
+                    onclick="editProduct('${product.id}')">
 
                     Edit
 
@@ -445,8 +530,9 @@ async function displayAdminProducts() {
 
 
                 <button
-                    onclick="deleteProduct('${product.id}')"
-                    class="delete-btn">
+                    type="button"
+                    class="delete-btn"
+                    onclick="deleteProduct('${product.id}')">
 
                     Delete
 
@@ -454,11 +540,12 @@ async function displayAdminProducts() {
 
 
                 <button
-                    onclick="toggleStatus('${product.id}')"
-                    class="status-btn">
+                    type="button"
+                    class="status-btn"
+                    onclick="toggleStatus('${product.id}')">
 
                     ${
-                        product.status === "available"
+                        isAvailable
                         ? "Mark Sold"
                         : "Make Available"
                     }
@@ -481,76 +568,167 @@ async function displayAdminProducts() {
    ADD / EDIT PRODUCT
 ===================================================== */
 
-const productForm =
-    document.getElementById(
-        "productForm"
-    );
+function setupProductForm() {
+
+    const productForm =
+        document.getElementById(
+            "productForm"
+        );
 
 
-if(productForm) {
+    if (!productForm) {
+        return;
+    }
+
 
     productForm.addEventListener(
         "submit",
-        async function(e) {
+        async function (e) {
 
             e.preventDefault();
+
+
+            if (!supabaseClient) {
+
+                alert(
+                    "Database connection नाही."
+                );
+
+                return;
+
+            }
 
 
             const editId =
                 document.getElementById(
                     "editId"
+                ).value.trim();
+
+
+            const name =
+                document.getElementById(
+                    "productName"
+                ).value.trim();
+
+
+            const price =
+                Number(
+                    document.getElementById(
+                        "productPrice"
+                    ).value
+                );
+
+
+            const condition =
+                document.getElementById(
+                    "productCondition"
                 ).value;
+
+
+            const status =
+                document.getElementById(
+                    "productStatus"
+                ).value;
+
+
+            const image =
+                document.getElementById(
+                    "productImage"
+                ).value.trim();
+
+
+            const details =
+                document.getElementById(
+                    "productDetails"
+                ).value.trim();
+
+
+            if (!name) {
+
+                alert(
+                    "Mobile name enter करा."
+                );
+
+                return;
+
+            }
+
+
+            if (!price && price !== 0) {
+
+                alert(
+                    "Valid price enter करा."
+                );
+
+                return;
+
+            }
+
+
+            if (!condition) {
+
+                alert(
+                    "Condition select करा."
+                );
+
+                return;
+
+            }
+
+
+            if (!details) {
+
+                alert(
+                    "Details enter करा."
+                );
+
+                return;
+
+            }
 
 
             const product = {
 
-                name:
-                    document.getElementById(
-                        "productName"
-                    ).value.trim(),
+                name: name,
 
+                price: price,
 
-                price:
-                    Number(
-                        document.getElementById(
-                            "productPrice"
-                        ).value
-                    ),
+                condition: condition,
 
-
-                condition:
-                    document.getElementById(
-                        "productCondition"
-                    ).value,
-
-
-                status:
-                    document.getElementById(
-                        "productStatus"
-                    ).value,
-
+                status: status || "available",
 
                 image:
-                    document.getElementById(
-                        "productImage"
-                    ).value.trim()
-                    ||
+                    image ||
                     "https://via.placeholder.com/600x600?text=Mobile",
 
-
-                details:
-                    document.getElementById(
-                        "productDetails"
-                    ).value.trim()
+                details: details
 
             };
 
 
+            const saveBtn =
+                document.getElementById(
+                    "saveBtn"
+                );
+
+
+            if (saveBtn) {
+
+                saveBtn.disabled = true;
+
+                saveBtn.innerText =
+                    editId
+                    ? "Updating..."
+                    : "Adding...";
+
+            }
+
+
             /* =================================================
-               EDIT EXISTING PRODUCT
+               UPDATE
             ================================================= */
 
-            if(editId) {
+            if (editId) {
 
                 const {
                     error
@@ -558,17 +736,34 @@ if(productForm) {
                     await supabaseClient
                         .from("products")
                         .update(product)
-                        .eq("id", editId);
+                        .eq(
+                            "id",
+                            editId
+                        );
 
 
-                if(error) {
+                if (error) {
 
-                    console.error(error);
+                    console.error(
+                        "Update error:",
+                        error
+                    );
 
                     alert(
-                        "Error updating product: " +
+                        "Product update failed:\n\n" +
                         error.message
                     );
+
+
+                    if (saveBtn) {
+
+                        saveBtn.disabled =
+                            false;
+
+                        saveBtn.innerText =
+                            "Update Product";
+
+                    }
 
                     return;
 
@@ -583,7 +778,7 @@ if(productForm) {
 
 
             /* =================================================
-               ADD NEW PRODUCT
+               INSERT
             ================================================= */
 
             else {
@@ -593,17 +788,33 @@ if(productForm) {
                 } =
                     await supabaseClient
                         .from("products")
-                        .insert([product]);
+                        .insert([
+                            product
+                        ]);
 
 
-                if(error) {
+                if (error) {
 
-                    console.error(error);
+                    console.error(
+                        "Insert error:",
+                        error
+                    );
 
                     alert(
-                        "Error adding product: " +
+                        "Product add failed:\n\n" +
                         error.message
                     );
+
+
+                    if (saveBtn) {
+
+                        saveBtn.disabled =
+                            false;
+
+                        saveBtn.innerText =
+                            "Add Product";
+
+                    }
 
                     return;
 
@@ -624,6 +835,14 @@ if(productForm) {
 
             await displayProducts();
 
+
+            if (saveBtn) {
+
+                saveBtn.disabled =
+                    false;
+
+            }
+
         }
     );
 
@@ -642,11 +861,13 @@ async function editProduct(id) {
 
     const product =
         products.find(
-            p => String(p.id) === String(id)
+            p =>
+                String(p.id) ===
+                String(id)
         );
 
 
-    if(!product) {
+    if (!product) {
 
         alert(
             "Product not found."
@@ -657,58 +878,103 @@ async function editProduct(id) {
     }
 
 
-    document.getElementById(
-        "editId"
-    ).value =
-        product.id;
+    const editId =
+        document.getElementById(
+            "editId"
+        );
 
 
-    document.getElementById(
-        "productName"
-    ).value =
-        product.name || "";
+    const productName =
+        document.getElementById(
+            "productName"
+        );
 
 
-    document.getElementById(
-        "productPrice"
-    ).value =
-        product.price || "";
+    const productPrice =
+        document.getElementById(
+            "productPrice"
+        );
 
 
-    document.getElementById(
-        "productCondition"
-    ).value =
-        product.condition || "";
+    const productCondition =
+        document.getElementById(
+            "productCondition"
+        );
 
 
-    document.getElementById(
-        "productStatus"
-    ).value =
-        product.status || "available";
+    const productStatus =
+        document.getElementById(
+            "productStatus"
+        );
 
 
-    document.getElementById(
-        "productImage"
-    ).value =
-        product.image || "";
+    const productImage =
+        document.getElementById(
+            "productImage"
+        );
 
 
-    document.getElementById(
-        "productDetails"
-    ).value =
-        product.details || "";
+    const productDetails =
+        document.getElementById(
+            "productDetails"
+        );
 
 
-    document.getElementById(
-        "formTitle"
-    ).innerText =
-        "Edit Product";
+    if (editId)
+        editId.value =
+            product.id;
 
 
-    document.getElementById(
-        "saveBtn"
-    ).innerText =
-        "Update Product";
+    if (productName)
+        productName.value =
+            product.name || "";
+
+
+    if (productPrice)
+        productPrice.value =
+            product.price || "";
+
+
+    if (productCondition)
+        productCondition.value =
+            product.condition || "";
+
+
+    if (productStatus)
+        productStatus.value =
+            product.status || "available";
+
+
+    if (productImage)
+        productImage.value =
+            product.image || "";
+
+
+    if (productDetails)
+        productDetails.value =
+            product.details || "";
+
+
+    const formTitle =
+        document.getElementById(
+            "formTitle"
+        );
+
+
+    if (formTitle)
+        formTitle.innerText =
+            "Edit Product";
+
+
+    const saveBtn =
+        document.getElementById(
+            "saveBtn"
+        );
+
+
+    if (saveBtn)
+        saveBtn.innerText =
+            "Update Product";
 
 
     window.scrollTo({
@@ -728,13 +994,15 @@ async function editProduct(id) {
 
 async function deleteProduct(id) {
 
-    const confirmDelete =
-        confirm(
+    const confirmed =
+        window.confirm(
             "Are you sure you want to remove this product?"
         );
 
 
-    if(!confirmDelete) return;
+    if (!confirmed) {
+        return;
+    }
 
 
     const {
@@ -743,15 +1011,21 @@ async function deleteProduct(id) {
         await supabaseClient
             .from("products")
             .delete()
-            .eq("id", id);
+            .eq(
+                "id",
+                id
+            );
 
 
-    if(error) {
+    if (error) {
 
-        console.error(error);
+        console.error(
+            "Delete error:",
+            error
+        );
 
         alert(
-            "Error deleting product: " +
+            "Delete failed:\n\n" +
             error.message
         );
 
@@ -773,7 +1047,7 @@ async function deleteProduct(id) {
 
 
 /* =====================================================
-   AVAILABLE / SOLD
+   TOGGLE AVAILABLE / SOLD
 ===================================================== */
 
 async function toggleStatus(id) {
@@ -784,11 +1058,21 @@ async function toggleStatus(id) {
 
     const product =
         products.find(
-            p => String(p.id) === String(id)
+            p =>
+                String(p.id) ===
+                String(id)
         );
 
 
-    if(!product) return;
+    if (!product) {
+
+        alert(
+            "Product not found."
+        );
+
+        return;
+
+    }
 
 
     const newStatus =
@@ -805,15 +1089,21 @@ async function toggleStatus(id) {
             .update({
                 status: newStatus
             })
-            .eq("id", id);
+            .eq(
+                "id",
+                id
+            );
 
 
-    if(error) {
+    if (error) {
 
-        console.error(error);
+        console.error(
+            "Status error:",
+            error
+        );
 
         alert(
-            "Error changing status: " +
+            "Status update failed:\n\n" +
             error.message
         );
 
@@ -841,27 +1131,50 @@ function resetForm() {
         );
 
 
-    if(!form) return;
+    if (!form) {
+        return;
+    }
 
 
     form.reset();
 
 
-    document.getElementById(
-        "editId"
-    ).value = "";
+    const editId =
+        document.getElementById(
+            "editId"
+        );
 
 
-    document.getElementById(
-        "formTitle"
-    ).innerText =
-        "Add New Product";
+    if (editId)
+        editId.value = "";
 
 
-    document.getElementById(
-        "saveBtn"
-    ).innerText =
-        "Add Product";
+    const formTitle =
+        document.getElementById(
+            "formTitle"
+        );
+
+
+    if (formTitle)
+        formTitle.innerText =
+            "Add New Product";
+
+
+    const saveBtn =
+        document.getElementById(
+            "saveBtn"
+        );
+
+
+    if (saveBtn) {
+
+        saveBtn.innerText =
+            "Add Product";
+
+        saveBtn.disabled =
+            false;
+
+    }
 
 }
 
@@ -872,7 +1185,37 @@ function resetForm() {
 
 async function logout() {
 
-    await supabaseClient.auth.signOut();
+    if (!supabaseClient) {
+
+        window.location.href =
+            "login.html";
+
+        return;
+
+    }
+
+
+    const {
+        error
+    } =
+        await supabaseClient.auth.signOut();
+
+
+    if (error) {
+
+        console.error(
+            "Logout error:",
+            error
+        );
+
+        alert(
+            "Logout failed:\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
 
 
     window.location.href =
@@ -882,19 +1225,24 @@ async function logout() {
 
 
 /* =====================================================
-   PAGE INITIALIZATION
+   INITIALIZE PAGE
 ===================================================== */
 
 async function initializePage() {
+
+    setupSearch();
+
+    setupProductForm();
+
 
     const ownerAccess =
         await checkOwnerAccess();
 
 
-    if(
-        window.location.pathname.includes(
-            "owner.html"
-        )
+    if (
+        window.location.pathname
+            .toLowerCase()
+            .includes("owner.html")
         &&
         !ownerAccess
     ) {
@@ -906,13 +1254,28 @@ async function initializePage() {
 
     await displayProducts();
 
+
     await displayAdminProducts();
 
 }
 
 
 /* =====================================================
-   START
+   START AFTER PAGE LOAD
 ===================================================== */
 
-initializePage();
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializePage
+    );
+
+} else {
+
+    initializePage();
+
+}
