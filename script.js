@@ -1,6 +1,7 @@
 /* =====================================================
    SACHIN MOBILE
    ONLINE DATABASE - SUPABASE
+   FULL SCRIPT.JS
 ===================================================== */
 
 
@@ -8,38 +9,27 @@
    SUPABASE CONFIG
 ===================================================== */
 
+import { createClient } from
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+
 const SUPABASE_URL =
     "https://bqzgwvmleguvbkicyzji.supabase.co";
 
-const SUPABASE_ANON_KEY =
-    "sb_publishable_AcUWdnxtWLVB1mAKD5cUlg_Q6mRfvlg";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "YOUR_PUBLISHABLE_KEY_HERE";
 
 
 /* =====================================================
    CREATE SUPABASE CLIENT
 ===================================================== */
 
-let supabaseClient = null;
-
-if (window.supabase) {
-
-    supabaseClient =
-        window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_ANON_KEY
-        );
-
-} else {
-
-    console.error(
-        "Supabase library is not loaded!"
+const supabaseClient =
+    createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
     );
-
-    alert(
-        "Supabase library load झाली नाही. Page refresh करा."
-    );
-
-}
 
 
 /* =====================================================
@@ -47,10 +37,6 @@ if (window.supabase) {
 ===================================================== */
 
 async function getProducts() {
-
-    if (!supabaseClient) {
-        return [];
-    }
 
     const {
         data,
@@ -81,7 +67,7 @@ async function getProducts() {
 
 
 /* =====================================================
-   DISPLAY PRODUCTS - HOME
+   DISPLAY PRODUCTS - HOME PAGE
 ===================================================== */
 
 async function displayProducts(search = "") {
@@ -110,7 +96,9 @@ async function displayProducts(search = "") {
 
 
     const searchText =
-        search.toLowerCase().trim();
+        search
+            .toLowerCase()
+            .trim();
 
 
     const filtered =
@@ -179,19 +167,22 @@ async function displayProducts(search = "") {
                 <img
                     src="${product.image || ""}"
                     alt="${product.name || "Mobile"}"
-                    onerror="this.src='https://via.placeholder.com/600x600?text=No+Image'"
+                    onerror="
+                        this.src='https://via.placeholder.com/600x600?text=No+Image'
+                    "
                 >
+
 
                 <span class="status ${
                     isAvailable
-                    ? "available"
-                    : "sold"
+                        ? "available"
+                        : "sold"
                 }">
 
                     ${
                         isAvailable
-                        ? "AVAILABLE"
-                        : "SOLD"
+                            ? "AVAILABLE"
+                            : "SOLD"
                     }
 
                 </span>
@@ -234,32 +225,30 @@ async function displayProducts(search = "") {
                     ${
                         isAvailable
 
-                        ?
+                            ?
 
                         `
-                        <a
-                            href="https://wa.me/917719042356?text=${encodeURIComponent(
-                                "I am interested in " +
-                                (product.name || "")
-                            )}"
-                            target="_blank"
-                            class="interest-btn">
-
-                            Enquire
-
-                        </a>
+                            <a
+                                href="https://wa.me/917719042356?text=${encodeURIComponent(
+                                    "I am interested in " +
+                                    (product.name || "")
+                                )}"
+                                target="_blank"
+                                class="interest-btn"
+                            >
+                                Enquire
+                            </a>
                         `
 
-                        :
+                            :
 
                         `
-                        <button
-                            class="sold-btn"
-                            disabled>
-
-                            Sold Out
-
-                        </button>
+                            <button
+                                class="sold-btn"
+                                disabled
+                            >
+                                Sold Out
+                            </button>
                         `
                     }
 
@@ -327,16 +316,6 @@ async function checkOwnerAccess() {
     }
 
 
-    if (!supabaseClient) {
-
-        window.location.href =
-            "login.html";
-
-        return false;
-
-    }
-
-
     const {
         data,
         error
@@ -344,7 +323,11 @@ async function checkOwnerAccess() {
         await supabaseClient.auth.getUser();
 
 
-    if (error || !data || !data.user) {
+    if (
+        error ||
+        !data ||
+        !data.user
+    ) {
 
         window.location.href =
             "login.html";
@@ -379,10 +362,12 @@ async function checkOwnerAccess() {
             ownerError
         );
 
+
         alert(
-            "Owner verification error: " +
+            "Owner verification error:\n\n" +
             ownerError.message
         );
+
 
         return false;
 
@@ -403,6 +388,7 @@ async function checkOwnerAccess() {
 
         window.location.href =
             "login.html";
+
 
         return false;
 
@@ -477,7 +463,9 @@ async function displayAdminProducts() {
             <img
                 src="${product.image || ""}"
                 alt="${product.name || "Mobile"}"
-                onerror="this.src='https://via.placeholder.com/150?text=No+Image'"
+                onerror="
+                    this.src='https://via.placeholder.com/150?text=No+Image'
+                "
             >
 
 
@@ -502,14 +490,14 @@ async function displayAdminProducts() {
 
                 <b class="${
                     isAvailable
-                    ? "available"
-                    : "sold"
+                        ? "available"
+                        : "sold"
                 }">
 
                     ${
                         isAvailable
-                        ? "AVAILABLE"
-                        : "SOLD"
+                            ? "AVAILABLE"
+                            : "SOLD"
                     }
 
                 </b>
@@ -522,32 +510,31 @@ async function displayAdminProducts() {
                 <button
                     type="button"
                     class="edit-btn"
-                    onclick="editProduct('${product.id}')">
-
+                    onclick="editProduct('${product.id}')"
+                >
                     Edit
-
                 </button>
 
 
                 <button
                     type="button"
                     class="delete-btn"
-                    onclick="deleteProduct('${product.id}')">
-
+                    onclick="deleteProduct('${product.id}')"
+                >
                     Delete
-
                 </button>
 
 
                 <button
                     type="button"
                     class="status-btn"
-                    onclick="toggleStatus('${product.id}')">
+                    onclick="toggleStatus('${product.id}')"
+                >
 
                     ${
                         isAvailable
-                        ? "Mark Sold"
-                        : "Make Available"
+                            ? "Mark Sold"
+                            : "Make Available"
                     }
 
                 </button>
@@ -565,7 +552,7 @@ async function displayAdminProducts() {
 
 
 /* =====================================================
-   ADD / EDIT PRODUCT
+   SETUP PRODUCT FORM
 ===================================================== */
 
 function setupProductForm() {
@@ -588,11 +575,23 @@ function setupProductForm() {
             e.preventDefault();
 
 
-            if (!supabaseClient) {
+            const {
+                data: userData
+            } =
+                await supabaseClient.auth.getUser();
+
+
+            if (
+                !userData ||
+                !userData.user
+            ) {
 
                 alert(
-                    "Database connection नाही."
+                    "Please login as owner first."
                 );
+
+                window.location.href =
+                    "login.html";
 
                 return;
 
@@ -643,6 +642,10 @@ function setupProductForm() {
                 ).value.trim();
 
 
+            /* ==============================
+               VALIDATION
+            ============================== */
+
             if (!name) {
 
                 alert(
@@ -654,7 +657,10 @@ function setupProductForm() {
             }
 
 
-            if (!price && price !== 0) {
+            if (
+                isNaN(price) ||
+                price < 0
+            ) {
 
                 alert(
                     "Valid price enter करा."
@@ -687,6 +693,10 @@ function setupProductForm() {
             }
 
 
+            /* ==============================
+               PRODUCT OBJECT
+            ============================== */
+
             const product = {
 
                 name: name,
@@ -695,7 +705,9 @@ function setupProductForm() {
 
                 condition: condition,
 
-                status: status || "available",
+                status:
+                    status ||
+                    "available",
 
                 image:
                     image ||
@@ -714,19 +726,21 @@ function setupProductForm() {
 
             if (saveBtn) {
 
-                saveBtn.disabled = true;
+                saveBtn.disabled =
+                    true;
+
 
                 saveBtn.innerText =
                     editId
-                    ? "Updating..."
-                    : "Adding...";
+                        ? "Updating..."
+                        : "Adding...";
 
             }
 
 
-            /* =================================================
-               UPDATE
-            ================================================= */
+            /* ==============================
+               UPDATE PRODUCT
+            ============================== */
 
             if (editId) {
 
@@ -749,6 +763,7 @@ function setupProductForm() {
                         error
                     );
 
+
                     alert(
                         "Product update failed:\n\n" +
                         error.message
@@ -765,6 +780,7 @@ function setupProductForm() {
 
                     }
 
+
                     return;
 
                 }
@@ -777,9 +793,9 @@ function setupProductForm() {
             }
 
 
-            /* =================================================
-               INSERT
-            ================================================= */
+            /* ==============================
+               ADD PRODUCT
+            ============================== */
 
             else {
 
@@ -800,6 +816,7 @@ function setupProductForm() {
                         error
                     );
 
+
                     alert(
                         "Product add failed:\n\n" +
                         error.message
@@ -816,6 +833,7 @@ function setupProductForm() {
 
                     }
 
+
                     return;
 
                 }
@@ -827,6 +845,10 @@ function setupProductForm() {
 
             }
 
+
+            /* ==============================
+               REFRESH
+            ============================== */
 
             resetForm();
 
@@ -920,39 +942,61 @@ async function editProduct(id) {
         );
 
 
-    if (editId)
+    if (editId) {
+
         editId.value =
             product.id;
 
+    }
 
-    if (productName)
+
+    if (productName) {
+
         productName.value =
             product.name || "";
 
+    }
 
-    if (productPrice)
+
+    if (productPrice) {
+
         productPrice.value =
             product.price || "";
 
+    }
 
-    if (productCondition)
+
+    if (productCondition) {
+
         productCondition.value =
             product.condition || "";
 
+    }
 
-    if (productStatus)
+
+    if (productStatus) {
+
         productStatus.value =
-            product.status || "available";
+            product.status ||
+            "available";
+
+    }
 
 
-    if (productImage)
+    if (productImage) {
+
         productImage.value =
             product.image || "";
 
+    }
 
-    if (productDetails)
+
+    if (productDetails) {
+
         productDetails.value =
             product.details || "";
+
+    }
 
 
     const formTitle =
@@ -961,9 +1005,12 @@ async function editProduct(id) {
         );
 
 
-    if (formTitle)
+    if (formTitle) {
+
         formTitle.innerText =
             "Edit Product";
+
+    }
 
 
     const saveBtn =
@@ -972,9 +1019,12 @@ async function editProduct(id) {
         );
 
 
-    if (saveBtn)
+    if (saveBtn) {
+
         saveBtn.innerText =
             "Update Product";
+
+    }
 
 
     window.scrollTo({
@@ -1024,10 +1074,12 @@ async function deleteProduct(id) {
             error
         );
 
+
         alert(
             "Delete failed:\n\n" +
             error.message
         );
+
 
         return;
 
@@ -1077,8 +1129,8 @@ async function toggleStatus(id) {
 
     const newStatus =
         product.status === "available"
-        ? "sold"
-        : "available";
+            ? "sold"
+            : "available";
 
 
     const {
@@ -1087,7 +1139,9 @@ async function toggleStatus(id) {
         await supabaseClient
             .from("products")
             .update({
+
                 status: newStatus
+
             })
             .eq(
                 "id",
@@ -1102,10 +1156,12 @@ async function toggleStatus(id) {
             error
         );
 
+
         alert(
             "Status update failed:\n\n" +
             error.message
         );
+
 
         return;
 
@@ -1145,8 +1201,11 @@ function resetForm() {
         );
 
 
-    if (editId)
+    if (editId) {
+
         editId.value = "";
+
+    }
 
 
     const formTitle =
@@ -1155,9 +1214,12 @@ function resetForm() {
         );
 
 
-    if (formTitle)
+    if (formTitle) {
+
         formTitle.innerText =
             "Add New Product";
+
+    }
 
 
     const saveBtn =
@@ -1170,6 +1232,7 @@ function resetForm() {
 
         saveBtn.innerText =
             "Add Product";
+
 
         saveBtn.disabled =
             false;
@@ -1185,20 +1248,12 @@ function resetForm() {
 
 async function logout() {
 
-    if (!supabaseClient) {
-
-        window.location.href =
-            "login.html";
-
-        return;
-
-    }
-
-
     const {
         error
     } =
-        await supabaseClient.auth.signOut();
+        await supabaseClient
+            .auth
+            .signOut();
 
 
     if (error) {
@@ -1208,10 +1263,12 @@ async function logout() {
             error
         );
 
+
         alert(
             "Logout failed:\n\n" +
             error.message
         );
+
 
         return;
 
@@ -1222,6 +1279,27 @@ async function logout() {
         "login.html";
 
 }
+
+
+/* =====================================================
+   MAKE FUNCTIONS AVAILABLE
+   FOR HTML onclick
+===================================================== */
+
+window.editProduct =
+    editProduct;
+
+window.deleteProduct =
+    deleteProduct;
+
+window.toggleStatus =
+    toggleStatus;
+
+window.logout =
+    logout;
+
+window.resetForm =
+    resetForm;
 
 
 /* =====================================================
@@ -1254,14 +1332,13 @@ async function initializePage() {
 
     await displayProducts();
 
-
     await displayAdminProducts();
 
 }
 
 
 /* =====================================================
-   START AFTER PAGE LOAD
+   START
 ===================================================== */
 
 if (
