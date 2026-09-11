@@ -7,102 +7,318 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0">
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>Owner Login | Sachin Mobile</title>
+    <title>Owner Login - Sachin Mobile</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
 </head>
 
-<body class="login-page">
+
+<body>
 
 
-<div class="login-container">
+    <!-- =================================================
+         OWNER LOGIN
+    ================================================== -->
 
-    <div class="login-logo">
-        <span>SM</span>
+    <div class="login-container">
+
+        <div class="login-box">
+
+            <h1>🔐 Owner Login</h1>
+
+            <p>
+                Sachin Mobile
+            </p>
+
+
+            <form id="loginForm">
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Owner Email"
+                    required
+                >
+
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Password"
+                    required
+                >
+
+
+                <button
+                    type="submit"
+                    id="loginBtn"
+                >
+                    Login
+                </button>
+
+            </form>
+
+
+            <p
+                id="loginMessage"
+                style="margin-top:15px;"
+            ></p>
+
+
+            <a
+                href="index.html"
+                style="display:block;margin-top:20px;"
+            >
+                ← Back to Website
+            </a>
+
+        </div>
+
     </div>
 
-    <h1>Owner Login</h1>
-
-    <p>Manage Sachin Mobile Products</p>
 
 
-    <form id="loginForm">
+    <!-- =================================================
+         SUPABASE
+    ================================================== -->
 
-        <label>Username</label>
-
-        <input
-            type="text"
-            id="username"
-            placeholder="Enter username"
-            required>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
-        <label>Password</label>
+    <script>
 
-        <input
-            type="password"
-            id="password"
-            placeholder="Enter password"
-            required>
+        /* =================================================
+           SUPABASE CONFIG
+        ================================================= */
 
-
-        <button type="submit">
-            Login
-        </button>
-
-    </form>
+        const SUPABASE_URL =
+            "https://bqzgwvmleguvbkicyzji.supabase.co";
 
 
-    <a href="index.html" class="back-home">
-        ← Back to Website
-    </a>
-
-</div>
+        const SUPABASE_ANON_KEY =
+            "sb_publishable_AcUWdnxtWLVB1mAKD5cUlg_Q6mRfvlg";
 
 
-<script>
+        /* =================================================
+           CREATE SUPABASE CLIENT
+        ================================================= */
 
-document
-.getElementById("loginForm")
-.addEventListener("submit", function(e) {
-
-    e.preventDefault();
-
-    const username =
-        document.getElementById("username").value;
-
-    const password =
-        document.getElementById("password").value;
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_ANON_KEY
+            );
 
 
-    /*
-       DEMO LOGIN
+        /* =================================================
+           LOGIN FORM
+        ================================================= */
 
-       Username: admin
-       Password: 1234
-    */
+        const loginForm =
+            document.getElementById(
+                "loginForm"
+            );
 
-    if(username === "admin" && password === "1234") {
 
-        localStorage.setItem(
-            "ownerLoggedIn",
-            "true"
+        loginForm.addEventListener(
+            "submit",
+            async function(e) {
+
+                e.preventDefault();
+
+
+                const email =
+                    document.getElementById(
+                        "email"
+                    ).value.trim();
+
+
+                const password =
+                    document.getElementById(
+                        "password"
+                    ).value;
+
+
+                const loginBtn =
+                    document.getElementById(
+                        "loginBtn"
+                    );
+
+
+                const message =
+                    document.getElementById(
+                        "loginMessage"
+                    );
+
+
+                loginBtn.disabled = true;
+
+                loginBtn.innerText =
+                    "Logging in...";
+
+
+                message.innerText =
+                    "";
+
+
+                /* =============================================
+                   SUPABASE LOGIN
+                ============================================== */
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabaseClient.auth.signInWithPassword({
+
+                        email: email,
+
+                        password: password
+
+                    });
+
+
+                if(error) {
+
+                    console.error(error);
+
+
+                    message.style.color =
+                        "red";
+
+
+                    message.innerText =
+                        "Login failed: " +
+                        error.message;
+
+
+                    loginBtn.disabled =
+                        false;
+
+
+                    loginBtn.innerText =
+                        "Login";
+
+
+                    return;
+
+                }
+
+
+                /* =============================================
+                   CHECK OWNER PROFILE
+                ============================================== */
+
+                const {
+                    data: owner,
+                    error: ownerError
+                } =
+                    await supabaseClient
+                        .from("owner_profiles")
+                        .select("user_id")
+                        .eq(
+                            "user_id",
+                            data.user.id
+                        )
+                        .maybeSingle();
+
+
+                if(ownerError) {
+
+                    console.error(
+                        ownerError
+                    );
+
+
+                    await supabaseClient
+                        .auth
+                        .signOut();
+
+
+                    message.style.color =
+                        "red";
+
+
+                    message.innerText =
+                        "Owner verification failed.";
+
+
+                    loginBtn.disabled =
+                        false;
+
+
+                    loginBtn.innerText =
+                        "Login";
+
+
+                    return;
+
+                }
+
+
+                if(!owner) {
+
+                    await supabaseClient
+                        .auth
+                        .signOut();
+
+
+                    message.style.color =
+                        "red";
+
+
+                    message.innerText =
+                        "You are not registered as an owner.";
+
+
+                    loginBtn.disabled =
+                        false;
+
+
+                    loginBtn.innerText =
+                        "Login";
+
+
+                    return;
+
+                }
+
+
+                /* =============================================
+                   SUCCESS
+                ============================================== */
+
+                message.style.color =
+                    "green";
+
+
+                message.innerText =
+                    "Login successful!";
+
+
+                setTimeout(
+                    function() {
+
+                        window.location.href =
+                            "owner.html";
+
+                    },
+                    500
+                );
+
+            }
         );
 
-        window.location.href = "owner.html";
+    </script>
 
-    } else {
-
-        alert("Wrong Username or Password!");
-
-    }
-
-});
-
-</script>
 
 </body>
+
 </html>
