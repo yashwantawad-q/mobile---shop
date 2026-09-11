@@ -7,220 +7,307 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0">
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>Owner Dashboard | Sachin Mobile</title>
+    <title>Owner Dashboard - Sachin Mobile</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
 </head>
 
 
-<body class="owner-page">
+<body>
 
 
-<!-- DASHBOARD HEADER -->
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
 
-<header class="dashboard-header">
+    <header class="header">
 
-    <div class="logo">
+        <div class="logo">
+            Sachin Mobile
+        </div>
 
-        <span>SM</span>
 
         <div>
-            <b>SACHIN</b>
-            <small>MOBILE</small>
+
+            <button
+                onclick="logout()"
+                class="logout-btn"
+            >
+                Logout
+            </button>
+
         </div>
 
-    </div>
+    </header>
 
 
-    <div>
 
-        <a
-            href="index.html"
-            class="view-btn">
-            View Website
-        </a>
+    <!-- =====================================================
+         OWNER DASHBOARD
+    ====================================================== -->
 
-        <button
-            onclick="logout()"
-            class="logout-btn">
-            Logout
-        </button>
-
-    </div>
-
-</header>
+    <main class="owner-container">
 
 
-<!-- DASHBOARD -->
+        <div class="owner-header">
 
-<main class="dashboard">
+            <h1>
+                Owner Dashboard
+            </h1>
 
-    <div class="dashboard-title">
+            <p>
+                Manage your mobile products
+            </p>
 
-        <p>OWNER PANEL</p>
-
-        <h1>Product Management</h1>
-
-        <span>
-            Add, edit, remove and manage your products.
-        </span>
-
-    </div>
+        </div>
 
 
-    <!-- ADD PRODUCT -->
 
-    <section class="admin-box">
+        <!-- =================================================
+             ADD / EDIT PRODUCT
+        ================================================== -->
 
-        <h2 id="formTitle">
-            Add New Product
-        </h2>
+        <section class="admin-form-section">
 
-
-        <form id="productForm">
-
-            <input
-                type="hidden"
-                id="editId">
+            <h2 id="formTitle">
+                Add New Product
+            </h2>
 
 
-            <div class="form-grid">
+            <form id="productForm">
 
-                <div>
 
-                    <label>Product Name</label>
+                <!-- Hidden Edit ID -->
 
-                    <input
-                        type="text"
-                        id="productName"
-                        placeholder="e.g. iPhone 12"
-                        required>
+                <input
+                    type="hidden"
+                    id="editId"
+                >
+
+
+                <!-- Product Name -->
+
+                <label>
+                    Mobile Name
+                </label>
+
+                <input
+                    type="text"
+                    id="productName"
+                    placeholder="Example: iPhone 12"
+                    required
+                >
+
+
+                <!-- Price -->
+
+                <label>
+                    Price
+                </label>
+
+                <input
+                    type="number"
+                    id="productPrice"
+                    placeholder="Example: 28999"
+                    min="0"
+                    required
+                >
+
+
+                <!-- Condition -->
+
+                <label>
+                    Condition
+                </label>
+
+                <select
+                    id="productCondition"
+                    required
+                >
+
+                    <option value="">
+                        Select Condition
+                    </option>
+
+                    <option value="Excellent">
+                        Excellent
+                    </option>
+
+                    <option value="Good">
+                        Good
+                    </option>
+
+                    <option value="Average">
+                        Average
+                    </option>
+
+                </select>
+
+
+                <!-- Status -->
+
+                <label>
+                    Status
+                </label>
+
+                <select
+                    id="productStatus"
+                    required
+                >
+
+                    <option value="available">
+                        Available
+                    </option>
+
+                    <option value="sold">
+                        Sold
+                    </option>
+
+                </select>
+
+
+                <!-- Image -->
+
+                <label>
+                    Image URL
+                </label>
+
+                <input
+                    type="url"
+                    id="productImage"
+                    placeholder="https://example.com/mobile.jpg"
+                >
+
+
+                <!-- Details -->
+
+                <label>
+                    Details
+                </label>
+
+                <textarea
+                    id="productDetails"
+                    placeholder="Example: 128GB | 8GB RAM | Clean Condition"
+                    rows="4"
+                    required
+                ></textarea>
+
+
+                <!-- Buttons -->
+
+                <div class="form-buttons">
+
+                    <button
+                        type="submit"
+                        id="saveBtn"
+                        class="save-btn"
+                    >
+                        Add Product
+                    </button>
+
+
+                    <button
+                        type="button"
+                        onclick="resetForm()"
+                        class="cancel-btn"
+                    >
+                        Cancel
+                    </button>
 
                 </div>
 
 
-                <div>
+            </form>
 
-                    <label>Price</label>
-
-                    <input
-                        type="number"
-                        id="productPrice"
-                        placeholder="e.g. 25000"
-                        required>
-
-                </div>
+        </section>
 
 
-                <div>
 
-                    <label>Condition</label>
+        <!-- =================================================
+             PRODUCTS
+        ================================================== -->
 
-                    <select id="productCondition">
+        <section class="admin-products-section">
 
-                        <option>Excellent</option>
-                        <option>Good</option>
-                        <option>Average</option>
+            <div class="section-title">
 
-                    </select>
+                <h2>
+                    Products
+                </h2>
 
-                </div>
-
-
-                <div>
-
-                    <label>Status</label>
-
-                    <select id="productStatus">
-
-                        <option value="available">
-                            Available
-                        </option>
-
-                        <option value="sold">
-                            Sold
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div>
-
-                    <label>Product Image URL</label>
-
-                    <input
-                        type="text"
-                        id="productImage"
-                        placeholder="https://...">
-
-                </div>
-
-
-                <div>
-
-                    <label>Storage / Details</label>
-
-                    <input
-                        type="text"
-                        id="productDetails"
-                        placeholder="128GB | 6GB RAM">
-
-                </div>
+                <button
+                    onclick="displayAdminProducts()"
+                    class="refresh-btn"
+                >
+                    🔄 Refresh
+                </button>
 
             </div>
 
 
-            <div class="form-buttons">
+            <div
+                id="adminProducts"
+                class="admin-products"
+            >
 
-                <button
-                    type="submit"
-                    class="save-btn"
-                    id="saveBtn">
-
-                    Add Product
-
-                </button>
-
-
-                <button
-                    type="button"
-                    class="cancel-btn"
-                    onclick="resetForm()">
-
-                    Clear
-
-                </button>
+                <div class="empty-admin">
+                    Loading products...
+                </div>
 
             </div>
 
-        </form>
-
-    </section>
+        </section>
 
 
-    <!-- PRODUCTS -->
-
-    <section class="admin-box">
-
-        <h2>All Products</h2>
-
-        <div
-            id="adminProducts"
-            class="admin-products">
-        </div>
-
-    </section>
+    </main>
 
 
-</main>
+
+    <!-- =====================================================
+         SUPABASE
+    ====================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
-<script src="script.js"></script>
+    <!-- =====================================================
+         SUPABASE CONFIG
+    ====================================================== -->
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://bqzgwvmleguvbkicyzji.supabase.co";
+
+
+        const SUPABASE_ANON_KEY =
+            "sb_publishable_AcUWdnxtWLVB1mAKD5cUlg_Q6mRfvlg";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_ANON_KEY
+            );
+
+    </script>
+
+
+
+    <!-- =====================================================
+         MAIN SCRIPT
+    ====================================================== -->
+
+    <script src="script.js"></script>
+
 
 </body>
+
 </html>
