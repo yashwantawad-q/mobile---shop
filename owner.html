@@ -175,15 +175,29 @@
 
                 <!-- Image -->
 
-                <label>
-                    Image URL
-                </label>
+                <!-- Image Upload -->
 
-                <input
-                    type="url"
-                    id="productImage"
-                    placeholder="https://example.com/mobile.jpg"
-                >
+<label>
+    Mobile Image
+</label>
+
+<input
+    type="file"
+    id="productImage"
+    accept="image/*"
+>
+
+<small>
+    Select mobile photo (JPG, PNG, WEBP)
+</small>
+
+<div id="imagePreview" style="margin-top:10px;"></div>
+
+<!-- Existing image URL used while editing -->
+<input
+    type="hidden"
+    id="existingProductImage"
+>
 
 
                 <!-- Details -->
