@@ -41,12 +41,13 @@ async function getProducts() {
     const {
         data,
         error
-    } = await supabaseClient
-        .from("products")
-        .select("*")
-        .order("created_at", {
-            ascending: false
-        });
+    } =
+        await supabaseClient
+            .from("products")
+            .select("*")
+            .order("created_at", {
+                ascending: false
+            });
 
 
     if (error) {
@@ -142,7 +143,6 @@ async function displayProducts(search = "") {
         `;
 
         return;
-
     }
 
 
@@ -171,7 +171,6 @@ async function displayProducts(search = "") {
                         this.src='https://via.placeholder.com/600x600?text=No+Image'
                     "
                 >
-
 
                 <span class="status ${
                     isAvailable
@@ -310,9 +309,7 @@ async function checkOwnerAccess() {
 
 
     if (!isOwnerPage) {
-
         return true;
-
     }
 
 
@@ -440,7 +437,6 @@ async function displayAdminProducts() {
         `;
 
         return;
-
     }
 
 
@@ -552,6 +548,202 @@ async function displayAdminProducts() {
 
 
 /* =====================================================
+   UPLOAD PRODUCT IMAGE TO SUPABASE STORAGE
+===================================================== */
+
+async function uploadProductImage(file) {
+
+    if (!file) {
+        return null;
+    }
+
+
+    /* Check image */
+
+    if (!file.type.startsWith("image/")) {
+
+        throw new Error(
+            "Please select a valid image file."
+        );
+
+    }
+
+
+    /* Maximum 5 MB */
+
+    if (file.size > 5 * 1024 * 1024) {
+
+        throw new Error(
+            "Image size must be less than 5 MB."
+        );
+
+    }
+
+
+    /* Get extension */
+
+    const extension =
+        file.name
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+
+    /* Unique file name */
+
+    const fileName =
+        `${crypto.randomUUID()}.${extension}`;
+
+
+    /* Folder */
+
+    const filePath =
+        `products/${fileName}`;
+
+
+    /* Upload */
+
+    const {
+        error: uploadError
+    } =
+        await supabaseClient
+            .storage
+            .from("product-images")
+            .upload(
+                filePath,
+                file,
+                {
+                    upsert: false,
+                    contentType: file.type
+                }
+            );
+
+
+    if (uploadError) {
+
+        console.error(
+            "Image upload error:",
+            uploadError
+        );
+
+        throw uploadError;
+
+    }
+
+
+    /* Get Public URL */
+
+    const {
+        data
+    } =
+        supabaseClient
+            .storage
+            .from("product-images")
+            .getPublicUrl(filePath);
+
+
+    return data.publicUrl;
+
+}
+
+
+/* =====================================================
+   IMAGE PREVIEW
+===================================================== */
+
+function setupImagePreview() {
+
+    const imageInput =
+        document.getElementById(
+            "productImage"
+        );
+
+
+    const imagePreview =
+        document.getElementById(
+            "imagePreview"
+        );
+
+
+    if (!imageInput || !imagePreview) {
+        return;
+    }
+
+
+    imageInput.addEventListener(
+        "change",
+        function () {
+
+            const file =
+                this.files[0];
+
+
+            if (!file) {
+
+                imagePreview.innerHTML =
+                    "";
+
+                return;
+
+            }
+
+
+            if (!file.type.startsWith("image/")) {
+
+                imagePreview.innerHTML = `
+                    <p>
+                        Please select an image file.
+                    </p>
+                `;
+
+                return;
+
+            }
+
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                function (e) {
+
+                    imagePreview.innerHTML = `
+
+                        <div>
+
+                            <p>
+                                <b>Image Preview:</b>
+                            </p>
+
+                            <img
+                                src="${e.target.result}"
+                                alt="Image Preview"
+                                style="
+                                    width:150px;
+                                    height:150px;
+                                    object-fit:cover;
+                                    border-radius:10px;
+                                    margin-top:5px;
+                                "
+                            >
+
+                        </div>
+
+                    `;
+
+                };
+
+
+            reader.readAsDataURL(file);
+
+        }
+    );
+
+}
+
+
+/* =====================================================
    SETUP PRODUCT FORM
 ===================================================== */
 
@@ -568,6 +760,11 @@ function setupProductForm() {
     }
 
 
+    /* Image preview */
+
+    setupImagePreview();
+
+
     productForm.addEventListener(
         "submit",
         async function (e) {
@@ -575,10 +772,16 @@ function setupProductForm() {
             e.preventDefault();
 
 
+            /* ==========================================
+               CHECK LOGIN
+            ========================================== */
+
             const {
                 data: userData
             } =
-                await supabaseClient.auth.getUser();
+                await supabaseClient
+                    .auth
+                    .getUser();
 
 
             if (
@@ -590,13 +793,19 @@ function setupProductForm() {
                     "Please login as owner first."
                 );
 
+
                 window.location.href =
                     "login.html";
+
 
                 return;
 
             }
 
+
+            /* ==========================================
+               GET FORM VALUES
+            ========================================== */
 
             const editId =
                 document.getElementById(
@@ -630,10 +839,33 @@ function setupProductForm() {
                 ).value;
 
 
-            const image =
+            /* Image File */
+
+            const imageInput =
                 document.getElementById(
                     "productImage"
-                ).value.trim();
+                );
+
+
+            const imageFile =
+                imageInput &&
+                imageInput.files
+                    ? imageInput.files[0]
+                    : null;
+
+
+            /* Existing image */
+
+            const existingImageInput =
+                document.getElementById(
+                    "existingProductImage"
+                );
+
+
+            const existingImage =
+                existingImageInput
+                    ? existingImageInput.value.trim()
+                    : "";
 
 
             const details =
@@ -642,9 +874,9 @@ function setupProductForm() {
                 ).value.trim();
 
 
-            /* ==============================
+            /* ==========================================
                VALIDATION
-            ============================== */
+            ========================================== */
 
             if (!name) {
 
@@ -693,30 +925,9 @@ function setupProductForm() {
             }
 
 
-            /* ==============================
-               PRODUCT OBJECT
-            ============================== */
-
-            const product = {
-
-                name: name,
-
-                price: price,
-
-                condition: condition,
-
-                status:
-                    status ||
-                    "available",
-
-                image:
-                    image ||
-                    "https://via.placeholder.com/600x600?text=Mobile",
-
-                details: details
-
-            };
-
+            /* ==========================================
+               SAVE BUTTON
+            ========================================== */
 
             const saveBtn =
                 document.getElementById(
@@ -738,9 +949,105 @@ function setupProductForm() {
             }
 
 
-            /* ==============================
+            /* ==========================================
+               IMAGE
+            ========================================== */
+
+            let image =
+                existingImage;
+
+
+            /* New image selected */
+
+            if (imageFile) {
+
+                try {
+
+                    if (saveBtn) {
+
+                        saveBtn.innerText =
+                            "Uploading Image...";
+
+                    }
+
+
+                    image =
+                        await uploadProductImage(
+                            imageFile
+                        );
+
+
+                } catch (uploadError) {
+
+                    console.error(
+                        "Image upload failed:",
+                        uploadError
+                    );
+
+
+                    alert(
+                        "Image upload failed:\n\n" +
+                        uploadError.message
+                    );
+
+
+                    if (saveBtn) {
+
+                        saveBtn.disabled =
+                            false;
+
+
+                        saveBtn.innerText =
+                            editId
+                                ? "Update Product"
+                                : "Add Product";
+
+                    }
+
+
+                    return;
+
+                }
+
+            }
+
+
+            /* No image */
+
+            if (!image) {
+
+                image =
+                    "https://via.placeholder.com/600x600?text=Mobile";
+
+            }
+
+
+            /* ==========================================
+               PRODUCT OBJECT
+            ========================================== */
+
+            const product = {
+
+                name: name,
+
+                price: price,
+
+                condition: condition,
+
+                status:
+                    status ||
+                    "available",
+
+                image: image,
+
+                details: details
+
+            };
+
+
+            /* ==========================================
                UPDATE PRODUCT
-            ============================== */
+            ========================================== */
 
             if (editId) {
 
@@ -775,6 +1082,7 @@ function setupProductForm() {
                         saveBtn.disabled =
                             false;
 
+
                         saveBtn.innerText =
                             "Update Product";
 
@@ -793,9 +1101,9 @@ function setupProductForm() {
             }
 
 
-            /* ==============================
+            /* ==========================================
                ADD PRODUCT
-            ============================== */
+            ========================================== */
 
             else {
 
@@ -828,6 +1136,7 @@ function setupProductForm() {
                         saveBtn.disabled =
                             false;
 
+
                         saveBtn.innerText =
                             "Add Product";
 
@@ -846,9 +1155,9 @@ function setupProductForm() {
             }
 
 
-            /* ==============================
+            /* ==========================================
                REFRESH
-            ============================== */
+            ========================================== */
 
             resetForm();
 
@@ -936,6 +1245,18 @@ async function editProduct(id) {
         );
 
 
+    const existingProductImage =
+        document.getElementById(
+            "existingProductImage"
+        );
+
+
+    const imagePreview =
+        document.getElementById(
+            "imagePreview"
+        );
+
+
     const productDetails =
         document.getElementById(
             "productDetails"
@@ -983,10 +1304,64 @@ async function editProduct(id) {
     }
 
 
+    /* Store old image URL */
+
+    if (existingProductImage) {
+
+        existingProductImage.value =
+            product.image || "";
+
+    }
+
+
+    /* Clear file input */
+
     if (productImage) {
 
         productImage.value =
-            product.image || "";
+            "";
+
+    }
+
+
+    /* Show old image */
+
+    if (
+        imagePreview &&
+        product.image
+    ) {
+
+        imagePreview.innerHTML = `
+
+            <div>
+
+                <p>
+                    <b>Current Image:</b>
+                </p>
+
+                <img
+                    src="${product.image}"
+                    alt="Current Image"
+                    style="
+                        width:150px;
+                        height:150px;
+                        object-fit:cover;
+                        border-radius:10px;
+                        margin-top:5px;
+                    "
+                    onerror="
+                        this.style.display='none'
+                    "
+                >
+
+                <p>
+                    Select a new image only if
+                    you want to replace this image.
+                </p>
+
+            </div>
+
+        `;
 
     }
 
@@ -1203,7 +1578,36 @@ function resetForm() {
 
     if (editId) {
 
-        editId.value = "";
+        editId.value =
+            "";
+
+    }
+
+
+    const existingProductImage =
+        document.getElementById(
+            "existingProductImage"
+        );
+
+
+    if (existingProductImage) {
+
+        existingProductImage.value =
+            "";
+
+    }
+
+
+    const imagePreview =
+        document.getElementById(
+            "imagePreview"
+        );
+
+
+    if (imagePreview) {
+
+        imagePreview.innerHTML =
+            "";
 
     }
 
@@ -1289,18 +1693,25 @@ async function logout() {
 window.editProduct =
     editProduct;
 
+
 window.deleteProduct =
     deleteProduct;
+
 
 window.toggleStatus =
     toggleStatus;
 
+
 window.logout =
     logout;
 
+
 window.resetForm =
     resetForm;
-window.displayAdminProducts = displayAdminProducts;
+
+
+window.displayAdminProducts =
+    displayAdminProducts;
 
 
 /* =====================================================
